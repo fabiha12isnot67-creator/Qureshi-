@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INKVERSE — The Comic Studio Universe</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Russo+One&family=Outfit:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #0a0511;
+    --bg-2: #14081f;
+    --surface: #1a0a28;
+    --surface-2: #241038;
+    --border: #2e1646;
+    --border-bright: #4a2570;
+    --fg: #f4ecff;
+    --muted: #a896c4;
+    --muted-2: #6b5a85;
+    --accent: #ff2e6c;
+    --accent-2: #00e5ff;
+    --accent-3: #ffb800;
+    --accent-4: #a855f7;
+  }
+  
+  * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+  }
+  
+  /* Comic textures */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,46,108,0.06) 1px, transparent 1px);
+    background-size: 14px 14px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 9999;
+  }
+  
+  .comic-display { font-family: 'Bangers', cursive; letter-spacing: 0.04em; }
+  .comic-heading { font-family: 'Russo One', sans-serif; }
+  .bebas { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em; }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-4) 50%, var(--accent-2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #ff5c8a 100%);
+    color: white;
+    font-family: 'Russo One', sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    box-shadow: 4px 4px 0 var(--bg-2), 4px 4px 0 2px var(--accent);
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--bg-2), 6px 6px 0 2px var(--accent);
+  }
+  .btn-primary:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--accent);
+  }
+  
+  .btn-ghost {
+    background: rgba(255,255,255,0.02);
+    color: var(--fg);
+    border: 2px solid var(--border-bright);
+    font-family: 'Russo One', sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 12px 26px;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-ghost:hover {
+    border-color: var(--accent-2);
+    color: var(--accent-2);
+    background: rgba(0, 229, 255, 0.05);
+  }
+  
+  .comic-card {
+    background: linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 100%);
+    border: 2px solid var(--border);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .comic-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-4), var(--accent-2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .comic-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(255, 46, 108, 0.2);
+  }
+  .comic-card:hover::before { transform: scaleX(1); }
+  
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 40%, rgba(255, 46, 108, 0.25), transparent 45%),
+      radial-gradient(circle at 80% 60%, rgba(168, 85, 247, 0.22), transparent 50%),
+      radial-gradient(circle at 50% 90%, rgba(0, 229, 255, 0.12), transparent 50%);
+  }
+  
+  .speed-lines {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      115deg,
+      transparent,
+      transparent 50px,
+      rgba(255, 255, 255, 0.02) 50px,
+      rgba(255, 255, 255, 0.02) 51px
+    );
+    pointer-events: none;
+  }
+  
+  .burst {
+    background: var(--accent);
+    color: white;
+    clip-path: polygon(0% 0%, 100% 0%, 95% 50%, 100% 100%, 0% 100%, 5% 50%);
+    padding: 6px 22px;
+    display: inline-block;
+    font-family: 'Bangers', cursive;
+    letter-spacing: 0.06em;
+    font-size: 15px;
+  }
+  
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-bright);
+    padding: 5px 12px;
+    font-family: 'Russo One', sans-serif;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    backdrop-filter: blur(8px);
+  }
+  
+  .genre-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-bright);
+    padding: 8px 16px;
+    font-family: 'Russo One', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.25s;
+    color: var(--muted);
+  }
+  .genre-chip:hover, .genre-chip.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  
+  .cover-wrap {
+    position: relative;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+    background: var(--bg-2);
+  }
+  .cover-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s, filter 0.4s;
+  }
+  .comic-card:hover .cover-wrap img {
+    transform: scale(1.06);
+    filter: saturate(1.15) contrast(1.05);
+  }
+  .cover-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(10, 5, 17, 0.95) 100%);
+    pointer-events: none;
+  }
+  
+  .rating-stars { color: var(--accent-3); font-size: 11px; letter-spacing: 2px; }
+  
+  .marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
+    background: linear-gradient(90deg, var(--bg-2), var(--surface), var(--bg-2));
+  }
+  .marquee-track {
+    display: inline-flex;
+    animation: marquee 35s linear infinite;
+    align-items: center;
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 26px;
+    font-family: 'Bangers', cursive;
+    font-size: 26px;
+    letter-spacing: 0.04em;
+    color: var(--fg);
+  }
+  .marquee-item.alt { color: var(--accent); }
+  .marquee-item .dot {
+    width: 8px; height: 8px;
+    background: var(--accent-2);
+    border-radius: 50%;
+  }
+  
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 2, 10, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-backdrop.active { display: flex; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  
+  .modal-panel {
+    background: linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 100%);
+    border: 2px solid var(--border-bright);
+    width: 100%;
+    max-width: 520px;
+    position: relative;
+    animation: slideUp 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .modal-panel::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px;
+    height: 5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-4), var(--accent-2));
+  }
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .dash-panel {
+    position: fixed;
+    top: 0; right: 0;
+    width: 100%;
+    max-width: 460px;
+    height: 100vh;
+    background: linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 100%);
+    border-left: 2px solid var(--border-bright);
+    z-index: 110;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    overflow-y: auto;
+  }
+  .dash-panel.open { transform: translateX(0); }
+  
+  .dash-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 2, 10, 0.7);
+    backdrop-filter: blur(6px);
+    z-index: 105;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+  }
+  .dash-backdrop.open { opacity: 1; visibility: visible; }
+  
+  .toast {
+    position: fixed;
+    top: 90px;
+    right: 24px;
+    background: var(--surface);
+    border-left: 4px solid var(--accent);
+    padding: 14px 22px;
+    z-index: 200;
+    transform: translateX(450px);
+    transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    font-family: 'Russo One', sans-serif;
+    font-size: 13px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    max-width: 360px;
+    letter-spacing: 0.04em;
+  }
+  .toast.show { transform: translateX(0); }
+  .toast[data-type="error"] { border-left-color: #ff3030; }
+  .toast[data-type="success"] { border-left-color: var(--accent); }
+  .toast[data-type="info"] { border-left-color: var(--accent-2); }
+  
+  input, select, textarea {
+    background: var(--bg-2);
+    border: 2px solid var(--border);
+    color: var(--fg);
+    padding: 13px 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    width: 100%;
+    transition: all 0.2s;
+    border-radius: 0;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--bg);
+  }
+  input::placeholder { color: var(--muted-2); }
+  
+  .auth-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: var(--surface);
+    border: 2px solid var(--border-bright);
+    min-width: 260px;
+    z-index: 60;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.25s;
+  }
+  .auth-menu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .auth-menu a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 18px;
+    color: var(--fg);
+    font-family: 'Russo One', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 11px;
+    border-bottom: 1px solid var(--border);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .auth-menu a:last-child { border-bottom: none; }
+  .auth-menu a:hover {
+    background: var(--bg-2);
+    color: var(--accent);
+    padding-left: 24px;
+  }
+  
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--surface-2); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+  
+  .tab-btn {
+    padding: 12px 22px;
+    font-family: 'Russo One', sans-serif;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.25s;
+    background: transparent;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-btn:hover { color: var(--fg); }
+  
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Russo One', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .section-label::before {
+    content: '';
+    width: 32px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  
+  .stat-number {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent-3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .dash-tab-content { display: none; }
+  .dash-tab-content.active { display: block; animation: fadeIn 0.3s; }
+  
+  .library-item, .order-item {
+    display: flex;
+    gap: 14px;
+    padding: 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+    margin-bottom: 10px;
+  }
+  .library-item:hover, .order-item:hover {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+  .library-item img, .order-item img {
+    width: 60px;
+    height: 90px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 70px;
+    left: 0; right: 0;
+    background: var(--bg);
+    border-bottom: 2px solid var(--border);
+    padding: 20px;
+    z-index: 40;
+  }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a {
+    display: block;
+    padding: 14px 0;
+    font-family: 'Russo One', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  @media (max-width: 1024px) {
+    .desktop-nav { display: none; }
+    .mobile-toggle { display: flex; }
+  }
+  @media (min-width: 1025px) {
+    .mobile-toggle { display: none; }
+  }
+  
+  .comic-bubble {
+    position: relative;
+    background: white;
+    color: black;
+    border: 3px solid black;
+    border-radius: 20px;
+    padding: 12px 18px;
+    font-family: 'Bangers', cursive;
+    font-size: 18px;
+    display: inline-block;
+  }
+  .comic-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 30px;
+    border: 12px solid transparent;
+    border-top-color: black;
+    border-bottom: 0;
+  }
+  .comic-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 33px;
+    border: 9px solid transparent;
+    border-top-color: white;
+    border-bottom: 0;
+    z-index: 1;
+  }
+</style>
+</head>
+<body class="relative">
+
+<!-- NAV -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-[var(--bg)]/90 backdrop-blur-lg border-b-2 border-[var(--border)]">
+  <div class="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-3 group">
+      <div class="w-10 h-10 bg-[var(--accent)] flex items-center justify-center transition-transform group-hover:rotate-12" style="clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);">
+        <i class="fas fa-bolt text-white text-lg"></i>
+      </div>
+      <div>
+        <div class="comic-display text-3xl leading-none">INKVERSE</div>
+        <div class="text-[9px] tracking-[0.35em] text-[var(--accent-2)] comic-heading mt-0.5">COMIC UNIVERSE</div>
+      </div>
+    </a>
+    
+    <div class="desktop-nav hidden lg:flex items-center gap-10 comic-heading text-[13px] uppercase tracking-[0.18em]">
+      <a href="#genres" class="hover:text-[var(--accent)] transition">Genres</a>
+      <a href="#bestbooks" class="hover:text-[var(--accent)] transition">Best Books</a>
+      <a href="#reviews" class="hover:text-[var(--accent)] transition">Reviews</a>
+      <a href="#order" class="hover:text-[var(--accent)] transition">Order</a>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <div id="auth-signed-out" class="flex items-center gap-2">
+        <button onclick="openModal('loginModal')" class="hidden sm:inline-block comic-heading text-[13px] uppercase tracking-[0.15em] px-4 py-2 hover:text-[var(--accent)] transition">Sign In</button>
+        <button onclick="openModal('signupModal')" class="btn-primary" style="padding: 11px 22px; font-size: 12px;">
+          <i class="fas fa-user-plus text-[11px]"></i> Join
+        </button>
+      </div>
+      
+      <div id="auth-signed-in" class="relative" style="display: none;">
+        <button onclick="toggleAuthMenu(event)" class="flex items-center gap-3 comic-heading text-[12px] uppercase tracking-[0.15em] px-3 py-2 border-2 border-[var(--border-bright)] hover:border-[var(--accent)] transition">
+          <div class="w-8 h-8 bg-[var(--accent)] flex items-center justify-center text-white font-bold comic-display text-lg" id="user-initial">A</div>
+          <span id="user-name" class="hidden sm:inline">READER</span>
+          <i class="fas fa-chevron-down text-[10px] text-[var(--muted)]"></i>
+        </button>
+        <div id="auth-menu" class="auth-menu">
+          <div class="px-5 py-3 border-b-2 border-[var(--border)] bg-[var(--bg-2)]">
+            <div class="text-[10px] text-[var(--muted)] comic-heading tracking-widest uppercase">Signed in as</div>
+            <div class="text-[var(--accent)] comic-heading mt-0.5" id="user-email-display">—</div>
+          </div>
+          <a onclick="openDashboard('dashboard')"><i class="fas fa-tachometer-alt w-4"></i> Dashboard</a>
+          <a onclick="openDashboard('orders')"><i class="fas fa-book-bookmark w-4"></i> My Bookings</a>
+          <a onclick="openDashboard('settings')"><i class="fas fa-cog w-4"></i> Account Settings</a>
+          <a onclick="openDashboard('membership')"><i class="fas fa-crown w-4"></i> Membership</a>
+          <a onclick="logOut()" style="color: #ff5050;"><i class="fas fa-sign-out-alt w-4"></i> Sign Out</a>
+        </div>
+      </div>
+      
+      <button class="mobile-toggle hidden flex-col justify-center items-center w-10 h-10 border-2 border-[var(--border-bright)]" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars text-sm"></i>
+      </button>
+    </div>
+  </div>
+  
+  <div id="mobile-menu" class="mobile-menu lg:hidden">
+    <a href="#genres">Genres</a>
+    <a href="#bestbooks">Best Books</a>
+    <a href="#reviews">Reviews</a>
+    <a href="#order">Order</a>
+    <a onclick="openModal('loginModal')" style="color: var(--accent);">Sign In</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="top" class="relative min-h-screen pt-24 overflow-hidden">
+  <div class="hero-bg"></div>
+  <div class="speed-lines"></div>
+  
+  <div class="relative max-w-[1600px] mx-auto px-6 lg:px-20 py-10 lg:py-14">
+    <div class="flex flex-wrap items-center gap-3 mb-8">
+      <span class="badge"><i class="fas fa-circle text-[var(--accent)] text-[5px]"></i> NEW DROPS EVERY FRIDAY</span>
+      <span class="badge">EST 2012</span>
+      <span class="badge"><i class="fas fa-globe text-[var(--accent)] text-[9px]"></i> 40+ COUNTRIES</span>
+    </div>
+    
+    <h1 class="comic-display text-[clamp(64px,13vw,210px)] mb-8">
+      STEP INTO<br>
+      <span class="gradient-text">THE INKVERSE.</span><span class="text-[var(--muted-2)] text-[0.32em] align-top ml-2 comic-heading font-light tracking-widest">/01</span>
+    </h1>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mb-14">
+      <div class="lg:col-span-7">
+        <p class="text-xl lg:text-[26px] text-[#cfc4e0] leading-snug max-w-2xl font-light">
+          We don't just print comics. We forge universes. Twelve years of relentless storytelling, 
+          <span class="text-[var(--accent)] font-semibold">2,400+ legendary issues</span>, 
+          and one unbreakable community built on ink, imagination, and infinite panels.
+        </p>
+        
+        <div class="flex flex-wrap gap-3 mt-10">
+          <button onclick="document.getElementById('order').scrollIntoView({behavior:'smooth'})" class="btn-primary">
+            <i class="fas fa-book"></i> Order Your Favorites Book
+          </button>
+          <button onclick="document.getElementById('bestbooks').scrollIntoView({behavior:'smooth'})" class="btn-ghost">
+            Our Best Books <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+        
+        <div class="flex items-center gap-6 mt-8 text-sm text-[var(--muted)] comic-heading uppercase tracking-widest">
+          <div class="flex items-center gap-2"><i class="fas fa-pen-nib text-[var(--accent)]"></i> Top Creators</div>
+          <div class="flex items-center gap-2"><i class="fas fa-gem text-[var(--accent)]"></i> Premium Quality</div>
+          <div class="flex items-center gap-2"><i class="fas fa-users text-[var(--accent)]"></i> Reader Community</div>
+        </div>
+      </div>
+      
+      <div class="lg:col-span-5 grid grid-cols-2 gap-x-6 gap-y-8">
+        <div class="border-l-2 border-[var(--border-bright)] pl-5">
+          <div class="stat-number" data-count="12">0</div>
+          <div class="comic-heading text-[11px] uppercase tracking-[0.25em] text-[var(--muted)] mt-2">Years Publishing</div>
+        </div>
+        <div class="border-l-2 border-[var(--accent)] pl-5">
+          <div class="stat-number" data-count="2400" data-suffix="+">0</div>
+          <div class="comic-heading text-[11px] uppercase tracking-[0.25em] text-[var(--muted)] mt-2">Issues Printed</div>
+        </div>
+        <div class="border-l-2 border-[var(--border-bright)] pl-5">
+          <div class="stat-number" data-count="18">0</div>
+          <div class="comic-heading text-[11px] uppercase tracking-[0.25em] text-[var(--muted)] mt-2">Award Wins</div>
+        </div>
+        <div class="border-l-2 border-[var(--accent)] pl-5">
+          <div class="stat-number" data-count="580" data-suffix="K">0</div>
+          <div class="comic-heading text-[11px] uppercase tracking-[0.25em] text-[var(--muted)] mt-2">Active Readers</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Best Books Showcase Strip -->
+    <div class="border-t-2 border-[var(--border)] pt-8">
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div class="flex items-center">
+          <span class="inline-block w-10 h-1 bg-[var(--accent)] mr-4"></span>
+          <h3 class="comic-heading text-[13px] uppercase tracking-[0.3em]">The Inkverse Collective — Featured Universes</h3>
+        </div>
+        <a href="#bestbooks" class="comic-heading text-[11px] uppercase tracking-[0.25em] text-[var(--muted)] hover:text-[var(--accent)] transition flex items-center gap-2">
+          View All 18 <i class="fas fa-arrow-right text-[10px]"></i>
+        </a>
+      </div>
+      
+      <div class="grid grid-cols-3 md:grid-cols-6 gap-2" id="hero-book-strip">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span class="marquee-item">FANTASY <span class="dot"></span></span>
+    <span class="marquee-item alt">ROMANCE <span class="dot"></span></span>
+    <span class="marquee-item">SCI-FI <span class="dot"></span></span>
+    <span class="marquee-item alt">ANIME <span class="dot"></span></span>
+    <span class="marquee-item">MYSTERY <span class="dot"></span></span>
+    <span class="marquee-item alt">SPY <span class="dot"></span></span>
+    <span class="marquee-item">HORROR <span class="dot"></span></span>
+    <span class="marquee-item alt">ADVENTURE <span class="dot"></span></span>
+    <span class="marquee-item">FANTASY <span class="dot"></span></span>
+    <span class="marquee-item alt">ROMANCE <span class="dot"></span></span>
+    <span class="marquee-item">SCI-FI <span class="dot"></span></span>
+    <span class="marquee-item alt">ANIME <span class="dot"></span></span>
+    <span class="marquee-item">MYSTERY <span class="dot"></span></span>
+    <span class="marquee-item alt">SPY <span class="dot"></span></span>
+    <span class="marquee-item">HORROR <span class="dot"></span></span>
+    <span class="marquee-item alt">ADVENTURE <span class="dot"></span></span>
+  </div>
+</div>
+
+<!-- MANIFESTO -->
+<section class="relative py-24 lg:py-32 px-6 lg:px-20 border-b-2 border-[var(--border)]">
+  <div class="max-w-[1400px] mx-auto">
+    <div class="section-label">/02 — Manifesto</div>
+    <div class="grid lg:grid-cols-12 gap-10 items-start">
+      <div class="lg:col-span-5">
+        <h2 class="comic-display text-5xl lg:text-7xl mb-6">WE DON'T<br>JUST DRAW.<br><span class="gradient-text">WE BUILD<br>UNIVERSES.</span></h2>
+        <p class="text-lg text-[var(--muted)] leading-snug">Four principles. Zero compromise. Every reader who opens our pages signs an unwritten contract with infinite imagination.</p>
+      </div>
+      <div class="lg:col-span-7 space-y-px">
+        <div class="comic-card p-8 flex gap-6 items-start">
+          <div class="comic-display text-5xl gradient-text leading-none">01</div>
+          <div>
+            <h4 class="comic-heading text-xl uppercase tracking-widest mb-2">Story Is King</h4>
+            <p class="text-base text-[var(--muted)] leading-snug">Every panel matters. Every dialogue bubble counts. We turn ink into emotion and pages into portals.</p>
+          </div>
+        </div>
+        <div class="comic-card p-8 flex gap-6 items-start">
+          <div class="comic-display text-5xl gradient-text leading-none">02</div>
+          <div>
+            <h4 class="comic-heading text-xl uppercase tracking-widest mb-2">No Bad Art, Only Bad Vision</h4>
+            <p class="text-base text-[var(--muted)] leading-snug">Leave your excuses at the door. The page doesn't care about your deadlines. Inside these covers, only mastery ships.</p>
+          </div>
+        </div>
+        <div class="comic-card p-8 flex gap-6 items-start">
+          <div class="comic-display text-5xl gradient-text leading-none">03</div>
+          <div>
+            <h4 class="comic-heading text-xl uppercase tracking-widest mb-2">Fandom Over Followers</h4>
+            <p class="text-base text-[var(--muted)] leading-snug">You read alongside, not alone. The fan drawing your favorite character is the same one who'll debate you in the forums.</p>
+          </div>
+        </div>
+        <div class="comic-card p-8 flex gap-6 items-start">
+          <div class="comic-display text-5xl gradient-text leading-none">04</div>
+          <div>
+            <h4 class="comic-heading text-xl uppercase tracking-widest mb-2">Create, Don't Conclude</h4>
+            <p class="text-base text-[var(--muted)] leading-snug">There is no final issue. No "The End". Only the next arc, the next spin-off, the next universe being hammered into shape.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GENRES -->
+<section id="genres" class="relative py-24 lg:py-32 px-6 lg:px-20 border-b-2 border-[var(--border)]">
+  <div class="max-w-[1600px] mx-auto">
+    <div class="flex items-end justify-between flex-wrap gap-6 mb-16">
+      <div>
+        <div class="section-label">/03 — Core Genres</div>
+        <h2 class="comic-display text-5xl lg:text-7xl">CHOOSE<br>YOUR <span class="gradient-text">UNIVERSE.</span></h2>
+      </div>
+      <p class="text-lg text-[var(--muted)] max-w-md leading-snug">Three signature genre lines, each engineered around a singular storytelling outcome. No filler arcs. Every panel has a purpose.</p>
+    </div>
+    
+    <div class="grid lg:grid-cols-3 gap-4">
+      <div class="comic-card p-0 relative overflow-hidden">
+        <div class="absolute top-4 right-4 comic-display text-8xl text-[var(--border-bright)] opacity-30 z-0">01</div>
+        <div class="relative aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/comicfantasy/800/600.jpg" class="w-full h-full object-cover" style="filter: contrast(1.2) saturate(1.2) hue-rotate(280deg);" alt="Fantasy Comics">
+          <div class="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-transparent to-transparent"></div>
+          <div class="absolute top-4 left-4 burst">FANTASY</div>
+          <div class="absolute bottom-4 left-4 right-4">
+            <div class="comic-display text-4xl">MYTHFORGE</div>
+            <div class="comic-heading text-[11px] tracking-[0.25em] text-[var(--accent-3)] uppercase">Line — Epic Worlds</div>
+          </div>
+        </div>
+        <div class="p-8 relative z-10">
+          <p class="text-base text-[var(--muted)] leading-snug mb-6">Swords, sorcery, and world-shattering magic. High fantasy sagas with deep lore, complex characters, and breathtaking landscapes.</p>
+          <div class="grid grid-cols-2 gap-4 mb-6 pt-6 border-t-2 border-[var(--border)]">
+            <div>
+              <div class="comic-display text-3xl gradient-text">120+</div>
+              <div class="comic-heading text-[10px] tracking-widest text-[var(--muted)] uppercase">Active Series</div>
+            </div>
+            <div>
+              <div class="comic-display text-3xl gradient-text">4.8<span class="text-base">/5</span></div>
+              <div class="comic-heading text-[10px] tracking-widest text-[var(--muted)] uppercase">Avg Rating</div>
+            </div>
+          </div>
+          <button onclick="document.getElementById('order').scrollIntoView({behavior:'smooth'})" class="btn-ghost w-full justify-center">Explore Series <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+      
+      <div class="comic-card p-0 relative overflow-hidden">
+        <div class="absolute top-4 right-4 comic-display text-8xl text-[var(--border-bright)] opacity-30 z-0">02</div>
+        <div class="relative aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/comicromance/800/600.jpg" class="w-full h-full object-cover" style="filter: contrast(1.2) saturate(1.2) hue-rotate(320deg);" alt="Romance Comics">
+          <div class="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-transparent to-transparent"></div>
+          <div class="absolute top-4 left-4 burst" style="background: var(--accent-4);">ROMANCE</div>
+          <div class="absolute bottom-4 left-4 right-4">
+            <div class="comic-display text-4xl">HEARTBEAT</div>
+            <div class="comic-heading text-[11px] tracking-[0.25em] text-[var(--accent-3)] uppercase">Line — Modern Love</div>
+          </div>
+        </div>
+        <div class="p-8 relative z-10">
+          <p class="text-base text-[var(--muted)] leading-snug mb-6">Slow burns, love triangles, and happily-ever-afters. Contemporary romance webtoons and indie comics that hit you right in the feels.</p>
+          <div class="grid grid-cols-2 gap-4 mb-6 pt-6 border-t-2 border-[var(--border)]">
+            <div>
+              <div class="comic-display text-3xl gradient-text">85+</div>
+              <div class="comic-heading text-[10px] tracking-widest text-[var(--muted)] uppercase">Active Series</div>
+            </div>
+            <div>
+              <div class="comic-display text-3xl gradient-text">4.9<span class="text-base">/5</span></div>
+              <div class="comic-heading text-[10px] tracking-widest text-[var(--muted)] uppercase">Avg Rating</div>
+            </div>
+          </div>
+          <button onclick="document.getElementById('order').scrollIntoView({behavior:'smooth'})" class="btn-ghost w-full justify-center">Explore Series <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+      
+      <div class="comic-card p-0 relative overflow-hidden">
+        <div class="absolute top-4 right-4 comic-display text-8xl text-[var(--border-bright)] opacity-30 z-0">03</div>
+        <div class="relative aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/comicscifi/800/600.jpg" class="w-full h-full object-cover" style="filter: contrast(1.2) saturate(1.2) hue-rotate(180deg);" alt="Sci-Fi Comics">
+          <div class="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-transparent to-transparent"></div>
+          <div class="absolute top-4 left-4 burst" style="background: var(--accent-2); color: black;">SCI-FI</div>
+          <div class="absolute bottom-4 left-4 right-4">
+            <div class="comic-display text-4xl">NEON DRIFT</div>
+            <div class="comic-heading text-[11px] tracking-[0.25em] text-[var(--accent-3)] uppercase">Line — Future Worlds</div>
+          </div>
+        </div>
+        <div class="p-8 relative z-10">
+          <p class="text-base text-[var(--muted)] leading-snug mb-6">Cyberpunk, space operas, and dystopian futures. Hard sci-fi and neon-noir thrillers that explore what it means to be human.</p>
+          <div class="grid grid-cols-2 gap-4 mb-6 pt-6 border-t-2 border-[var(--border)]">
+            <div>
+              <div class="comic-display text-3xl gradient-text">65+</div>
+              <div class="comic-heading text-[10px] tracking-widest text-[var(--muted)] uppercase">Active Series</div>
+            </div>
+            <div>
+              <div class="comic-display text-3xl gradient-text">4.7<span class="text-base">/5</span></div>
+              <div class="comic-heading text-[10px] tracking-widest text-[var(--muted)] uppercase">Avg Rating</div>
+            </div>
+          </div>
+          <button onclick="document.getElementById('order').scrollIntoView({behavior:'smooth'})" class="btn-ghost w-full justify-center">Explore Series <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OUR BEST BOOKS -->
+<section id="bestbooks" class="relative py-24 lg:py-32 px-6 lg:px-20 border-b-2 border-[var(--border)]">
+  <div class="max-w-[1600px] mx-auto">
+    <div class="flex items-end justify-between flex-wrap gap-6 mb-16">
+      <div>
+        <div class="section-label">/04 — The Hall of Fame</div>
+        <h2 class="comic-display text-5xl lg:text-7xl">OUR<br><span class="gradient-text">BEST BOOKS.</span></h2>
+      </div>
+      <div class="max-w-md">
+        <p class="text-lg text-[var(--muted)] leading-snug mb-3">Critically acclaimed. Fan-adored. Every series below holds a minimum 4.5+ rating and has sold over 100,000 copies worldwide.</p>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="books-grid">
+      <!-- Populated by JS -->
+    </div>
+    
+    <div class="mt-12 flex items-center justify-between flex-wrap gap-4 border-t-2 border-[var(--border)] pt-8">
+      <div class="comic-heading text-sm text-[var(--muted)] uppercase tracking-widest">Showing 8 of 18 award-winning series</div>
+      <button onclick="showToast('Full catalog portal coming soon','info')" class="btn-ghost">
+        View Full Catalog <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ART GALLERY -->
+<section class="border-b-2 border-[var(--border)]">
+  <div class="px-6 lg:px-20 pt-16 pb-6 max-w-[1600px] mx-auto">
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+      <div>
+        <div class="section-label">/05 — The Gallery</div>
+        <h3 class="comic-display text-3xl lg:text-5xl">11,000 SQ.FT. OF <span class="gradient-text">RAW ART.</span></h3>
+      </div>
+      <p class="text-[var(--muted)] max-w-sm leading-snug">Original panels. Concept sketches. Variant covers. Zero filler, just pure visual firepower from our studio vaults.</p>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+    <div class="aspect-square overflow-hidden relative group">
+      <img src="https://picsum.photos/seed/inkart1/600/600.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" style="filter: contrast(1.3) saturate(1.2) hue-rotate(280deg);" alt="Art">
+    </div>
+    <div class="aspect-square overflow-hidden relative group">
+      <img src="https://picsum.photos/seed/inkart2/600/600.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" style="filter: contrast(1.3) saturate(1.2) hue-rotate(320deg);" alt="Art">
+    </div>
+    <div class="aspect-square overflow-hidden relative group">
+      <img src="https://picsum.photos/seed/inkart3/600/600.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" style="filter: contrast(1.3) saturate(1.2) hue-rotate(180deg);" alt="Art">
+    </div>
+    <div class="aspect-square overflow-hidden relative group">
+      <img src="https://picsum.photos/seed/inkart4/600/600.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" style="filter: contrast(1.3) saturate(1.2) hue-rotate(200deg);" alt="Art">
+    </div>
+    <div class="aspect-square overflow-hidden relative group">
+      <img src="https://picsum.photos/seed/inkart5/600/600.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" style="filter: contrast(1.3) saturate(1.2) hue-rotate(340deg);" alt="Art">
+    </div>
+    <div class="aspect-square overflow-hidden relative group">
+      <img src="https://picsum.photos/seed/inkart6/600/600.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" style="filter: contrast(1.3) saturate(1.2) hue-rotate(260deg);" alt="Art">
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews" class="relative py-24 lg:py-32 px-6 lg:px-20 border-b-2 border-[var(--border)]">
+  <div class="max-w-[1600px] mx-auto">
+    <div class="flex items-end justify-between flex-wrap gap-6 mb-16">
+      <div>
+        <div class="section-label">/06 — Reader Reviews</div>
+        <h2 class="comic-display text-5xl lg:text-7xl">FORGED<br><span class="gradient-text">BY FANS.</span></h2>
+      </div>
+      <p class="text-lg text-[var(--muted)] max-w-md leading-snug">Real readers. Real reviews. Verified through purchase history. No bots, no paid shills, no fake hype.</p>
+    </div>
+    
+    <div class="grid lg:grid-cols-3 gap-4" id="reviews-grid">
+      <!-- Populated by JS -->
+    </div>
+    
+    <div class="mt-12 grid lg:grid-cols-4 gap-4 border-t-2 border-[var(--border)] pt-10">
+      <div>
+        <div class="comic-display text-5xl gradient-text">94<span class="text-2xl">%</span></div>
+        <div class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] mt-1">Reader Retention</div>
+      </div>
+      <div>
+        <div class="comic-display text-5xl gradient-text">312</div>
+        <div class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] mt-1">Pages Per Month</div>
+      </div>
+      <div>
+        <div class="comic-display text-5xl gradient-text">7.2M</div>
+        <div class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] mt-1">Total Reads</div>
+      </div>
+      <div>
+        <div class="comic-display text-5xl gradient-text">4.9<span class="text-2xl">/5</span></div>
+        <div class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] mt-1">Avg User Rating</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ORDER FORM -->
+<section id="order" class="relative py-24 lg:py-32 px-6 lg:px-20 border-b-2 border-[var(--border)] overflow-hidden">
+  <div class="absolute inset-0 speed-lines opacity-30"></div>
+  <div class="absolute top-0 right-0 w-1/3 h-full" style="background: radial-gradient(circle at 70% 50%, rgba(255,46,108,0.15), transparent 60%);"></div>
+  
+  <div class="relative max-w-[1400px] mx-auto">
+    <div class="grid lg:grid-cols-12 gap-12">
+      <div class="lg:col-span-5">
+        <div class="section-label">/07 — Get Your Copy</div>
+        <h2 class="comic-display text-5xl lg:text-7xl mb-6">ORDER YOUR<br><span class="gradient-text">FAVORITES BOOK.</span></h2>
+        <p class="text-xl text-[var(--muted)] leading-snug mb-8">One order. Infinite adventure. Choose your format, select your series, and we'll ship the multiverse straight to your door.</p>
+        
+        <div class="space-y-4 border-t-2 border-[var(--border)] pt-8">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 bg-[var(--bg-2)] border-2 border-[var(--border-bright)] flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-book text-[var(--accent)]"></i>
+            </div>
+            <div>
+              <div class="comic-heading text-sm uppercase tracking-widest">Premium Print Editions</div>
+              <div class="text-[var(--muted)]">Matte covers, interior gloss, collector grade</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 bg-[var(--bg-2)] border-2 border-[var(--border-bright)] flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-tablet-screen-button text-[var(--accent)]"></i>
+            </div>
+            <div>
+              <div class="comic-heading text-sm uppercase tracking-widest">Digital Access</div>
+              <div class="text-[var(--muted)]">Instant read on any device, offline sync</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 bg-[var(--bg-2)] border-2 border-[var(--border-bright)] flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-gift text-[var(--accent)]"></i>
+            </div>
+            <div>
+              <div class="comic-heading text-sm uppercase tracking-widest">Exclusive Variants</div>
+              <div class="text-[var(--muted)]">Convention exclusives & signed copies</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 bg-[var(--bg-2)] border-2 border-[var(--border-bright)] flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-shipping-fast text-[var(--accent)]"></i>
+            </div>
+            <div>
+              <div class="comic-heading text-sm uppercase tracking-widest">Worldwide Shipping</div>
+              <div class="text-[var(--muted)]">Tracked & insured, arrives in 5-14 days</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="lg:col-span-7">
+        <form id="order-form" class="comic-card p-8 lg:p-10 relative">
+          <div class="flex items-center justify-between mb-8 pb-6 border-b-2 border-[var(--border)]">
+            <div>
+              <div class="comic-heading text-[11px] uppercase tracking-[0.3em] text-[var(--muted)]">Comic Order Request</div>
+              <div class="comic-display text-3xl mt-1">INKVERSE INTAKE FORM</div>
+            </div>
+            <div class="text-right">
+              <div class="comic-heading text-[10px] uppercase tracking-widest text-[var(--muted)]">Order ID</div>
+              <div class="comic-heading text-sm text-[var(--accent)]" id="order-id">IV-####</div>
+            </div>
+          </div>
+          
+          <div class="space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Full Name *</label>
+                <input type="text" id="ord-name" placeholder="e.g. Peter Parker" required>
+              </div>
+              <div>
+                <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Phone *</label>
+                <input type="tel" id="ord-phone" placeholder="+1 (555) 000-0000" required>
+              </div>
+            </div>
+            
+            <div>
+              <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Email *</label>
+              <input type="email" id="ord-email" placeholder="you@domain.com" required>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Favorite Genre *</label>
+                <select id="ord-genre" required>
+                  <option value="">— Select Genre —</option>
+                  <option>Fantasy</option>
+                  <option>Romance</option>
+                  <option>Sci-Fi</option>
+                  <option>Anime</option>
+                  <option>Spy</option>
+                  <option>Mystery</option>
+                  <option>Horror</option>
+                </select>
+              </div>
+              <div>
+                <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Format *</label>
+                <select id="ord-format" required>
+                  <option value="">— Select Format —</option>
+                  <option>Physical Print ($24.99)</option>
+                  <option>Digital Download ($9.99)</option>
+                  <option>Bundle (Print + Digital) ($29.99)</option>
+                  <option>Collector's Variant ($49.99)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Quantity *</label>
+                <input type="number" id="ord-qty" min="1" value="1" required>
+              </div>
+              <div>
+                <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Shipping Speed *</label>
+                <select id="ord-shipping" required>
+                  <option value="">— Select Speed —</option>
+                  <option>Standard (5-14 Days)</option>
+                  <option>Express (2-5 Days)</option>
+                  <option>Overnight (1-2 Days)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div>
+              <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Notes (Optional)</label>
+              <textarea id="ord-notes" rows="3" placeholder="Specific issues, variant requests, shipping constraints..."></textarea>
+            </div>
+            
+            <div class="flex items-start gap-3 pt-2">
+              <input type="checkbox" id="ord-consent" class="w-auto mt-1" required>
+              <label for="ord-consent" class="text-sm text-[var(--muted)] leading-snug">I consent to Inkverse contacting me regarding my order. I understand this is a no-obligation intake form.</label>
+            </div>
+            
+            <div class="pt-4 border-t-2 border-[var(--border)] flex items-center justify-between flex-wrap gap-4">
+              <div class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)]">
+                <i class="fas fa-shield-halved text-[var(--accent)] mr-2"></i> Response within 24h
+              </div>
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-book"></i> Submit Order Request
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="relative px-6 lg:px-20 pt-20 pb-10 border-b-2 border-[var(--border)]">
+  <div class="max-w-[1600px] mx-auto">
+    <div class="grid lg:grid-cols-12 gap-10 mb-16">
+      <div class="lg:col-span-5">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 bg-[var(--accent)] flex items-center justify-center" style="clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);">
+            <i class="fas fa-bolt text-white text-xl"></i>
+          </div>
+          <div>
+            <div class="comic-display text-3xl leading-none">INKVERSE</div>
+            <div class="text-[10px] tracking-[0.35em] text-[var(--accent-2)] comic-heading">COMIC UNIVERSE</div>
+          </div>
+        </div>
+        <p class="text-lg text-[var(--muted)] leading-snug max-w-md mb-6">A high-performance comic studio forging universes since 2012. Ink, imagination, infinite panels.</p>
+        <div class="flex gap-3">
+          <a href="#" onclick="showToast('Follow us on Instagram!','info'); return false;" class="w-11 h-11 border-2 border-[var(--border-bright)] flex items-center justify-center hover:border-[var(--accent)] hover:text-[var(--accent)] transition"><i class="fab fa-instagram"></i></a>
+          <a href="#" onclick="showToast('Subscribe on YouTube!','info'); return false;" class="w-11 h-11 border-2 border-[var(--border-bright)] flex items-center justify-center hover:border-[var(--accent)] hover:text-[var(--accent)] transition"><i class="fab fa-youtube"></i></a>
+          <a href="#" onclick="showToast('Follow us on TikTok!','info'); return false;" class="w-11 h-11 border-2 border-[var(--border-bright)] flex items-center justify-center hover:border-[var(--accent)] hover:text-[var(--accent)] transition"><i class="fab fa-tiktok"></i></a>
+          <a href="#" onclick="showToast('Follow us on X!','info'); return false;" class="w-11 h-11 border-2 border-[var(--border-bright)] flex items-center justify-center hover:border-[var(--accent)] hover:text-[var(--accent)] transition"><i class="fab fa-x-twitter"></i></a>
+        </div>
+      </div>
+      
+      <div class="lg:col-span-2">
+        <div class="comic-heading text-[11px] uppercase tracking-[0.25em] text-[var(--accent)] mb-5">Studio</div>
+        <ul class="space-y-3">
+          <li><a href="#genres" class="hover:text-[var(--accent)] transition">Genres</a></li>
+          <li><a href="#bestbooks" class="hover:text-[var(--accent)] transition">Best Books</a></li>
+          <li><a href="#reviews" class="hover:text-[var(--accent)] transition">Reviews</a></li>
+          <li><a href="#order" class="hover:text-[var(--accent)] transition">Order Book</a></li>
+        </ul>
+      </div>
+      
+      <div class="lg:col-span-2">
+        <div class="comic-heading text-[11px] uppercase tracking-[0.25em] text-[var(--accent)] mb-5">Members</div>
+        <ul class="space-y-3">
+          <li><a href="#" onclick="openModal('loginModal'); return false;" class="hover:text-[var(--accent)] transition">Sign In</a></li>
+          <li><a href="#" onclick="openModal('signupModal'); return false;" class="hover:text-[var(--accent)] transition">Create Account</a></li>
+          <li><a href="#" onclick="openDashboard('dashboard'); return false;" class="hover:text-[var(--accent)] transition">Member Portal</a></li>
+          <li><a href="#" onclick="showToast('Release schedule coming soon!','info'); return false;" class="hover:text-[var(--accent)] transition">Release Schedule</a></li>
+        </ul>
+      </div>
+      
+      <div class="lg:col-span-3">
+        <div class="comic-heading text-[11px] uppercase tracking-[0.25em] text-[var(--accent)] mb-5">Inkverse HQ</div>
+        <div class="text-[var(--muted)] space-y-2">
+          <div class="flex items-start gap-3"><i class="fas fa-map-marker-alt text-[var(--accent)] mt-1"></i><span>404 Panel Street<br>Ink District, Metro 07042</span></div>
+          <div class="flex items-center gap-3"><i class="fas fa-phone text-[var(--accent)]"></i> +1 (555) 472-6341</div>
+          <div class="flex items-center gap-3"><i class="fas fa-envelope text-[var(--accent)]"></i> hello@inkverse.studio</div>
+          <div class="flex items-center gap-3"><i class="fas fa-clock text-[var(--accent)]"></i> Mon-Sat · 10:00 — 22:00</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="border-t-2 border-[var(--border)] pt-8 flex items-center justify-between flex-wrap gap-4">
+      <div class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)]">© 2024 Inkverse Comic Studio. All rights reserved.</div>
+      <div class="flex gap-6 comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)]">
+        <a href="#" onclick="showToast('Privacy Policy','info'); return false;" class="hover:text-[var(--accent)] transition">Privacy</a>
+        <a href="#" onclick="showToast('Terms of Service','info'); return false;" class="hover:text-[var(--accent)] transition">Terms</a>
+        <a href="#" onclick="showToast('Copyright Info','info'); return false;" class="hover:text-[var(--accent)] transition">Copyright</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal-backdrop">
+  <div class="modal-panel p-8 lg:p-10">
+    <button onclick="closeModal('loginModal')" class="absolute top-5 right-5 w-8 h-8 flex items-center justify-center hover:text-[var(--accent)] transition">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="mb-8">
+      <div class="comic-heading text-[11px] uppercase tracking-[0.3em] text-[var(--accent)] mb-2">Member Access</div>
+      <h3 class="comic-display text-4xl">SIGN IN.</h3>
+      <p class="text-[var(--muted)] mt-2">Welcome back to the multiverse.</p>
+    </div>
+    <form id="login-form" class="space-y-5">
+      <div>
+        <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Email</label>
+        <input type="email" id="login-email" placeholder="you@domain.com" required>
+      </div>
+      <div>
+        <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" required>
+      </div>
+      <div class="flex items-center justify-between text-sm">
+        <label class="flex items-center gap-2 text-[var(--muted)] cursor-pointer">
+          <input type="checkbox" class="w-auto"> Remember me
+        </label>
+        <a href="#" onclick="showToast('Reset link sent (demo)','info'); return false;" class="comic-heading text-[11px] uppercase tracking-widest text-[var(--accent)] hover:underline">Forgot Password?</a>
+      </div>
+      <button type="submit" class="btn-primary w-full justify-center">
+        <i class="fas fa-arrow-right-to-bracket"></i> Sign In
+      </button>
+    </form>
+    <div class="mt-6 pt-6 border-t-2 border-[var(--border)] text-center text-[var(--muted)]">
+      New to Inkverse? 
+      <a href="#" onclick="closeModal('loginModal'); openModal('signupModal'); return false;" class="text-[var(--accent)] comic-heading uppercase tracking-widest text-[12px] hover:underline ml-1">Create Account</a>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNUP MODAL -->
+<div id="signupModal" class="modal-backdrop">
+  <div class="modal-panel p-8 lg:p-10">
+    <button onclick="closeModal('signupModal')" class="absolute top-5 right-5 w-8 h-8 flex items-center justify-center hover:text-[var(--accent)] transition">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="mb-8">
+      <div class="comic-heading text-[11px] uppercase tracking-[0.3em] text-[var(--accent)] mb-2">Join the Universe</div>
+      <h3 class="comic-display text-4xl">CREATE ACCOUNT.</h3>
+      <p class="text-[var(--muted)] mt-2">Begin your collection. No payment required to sign up.</p>
+    </div>
+    <form id="signup-form" class="space-y-5">
+      <div>
+        <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Full Name</label>
+        <input type="text" id="signup-name" placeholder="e.g. Peter Parker" required>
+      </div>
+      <div>
+        <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Email</label>
+        <input type="email" id="signup-email" placeholder="you@domain.com" required>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Password</label>
+          <input type="password" id="signup-password" placeholder="Min 6 chars" required>
+        </div>
+        <div>
+          <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Confirm</label>
+          <input type="password" id="signup-confirm" placeholder="Repeat" required>
+        </div>
+      </div>
+      <div class="flex items-start gap-3">
+        <input type="checkbox" id="signup-terms" class="w-auto mt-1" required>
+        <label for="signup-terms" class="text-sm text-[var(--muted)] leading-snug">I agree to the Inkverse Member Code and Content Guidelines.</label>
+      </div>
+      <button type="submit" class="btn-primary w-full justify-center">
+        <i class="fas fa-user-plus"></i> Create Account
+      </button>
+    </form>
+    <div class="mt-6 pt-6 border-t-2 border-[var(--border)] text-center text-[var(--muted)]">
+      Already a member? 
+      <a href="#" onclick="closeModal('signupModal'); openModal('loginModal'); return false;" class="text-[var(--accent)] comic-heading uppercase tracking-widest text-[12px] hover:underline ml-1">Sign In</a>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD SLIDE-OVER -->
+<div id="dash-backdrop" class="dash-backdrop" onclick="closeDashboard()"></div>
+<div id="dash-panel" class="dash-panel">
+  <div class="p-6 border-b-2 border-[var(--border)] sticky top-0 bg-[var(--surface)] z-10">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-[var(--accent)] flex items-center justify-center text-white font-bold comic-display text-xl" id="dash-initial">A</div>
+        <div>
+          <div class="comic-display text-2xl leading-none" id="dash-name">READER</div>
+          <div class="text-[10px] tracking-widest text-[var(--accent-2)] comic-heading uppercase" id="dash-tier">FREE TIER</div>
+        </div>
+      </div>
+      <button onclick="closeDashboard()" class="w-8 h-8 flex items-center justify-center hover:text-[var(--accent)] transition">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+  
+  <div class="flex border-b-2 border-[var(--border)] flex-wrap">
+    <button class="tab-btn active" data-tab="dashboard" onclick="switchDashTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" data-tab="orders" onclick="switchDashTab('orders')">My Orders</button>
+    <button class="tab-btn" data-tab="settings" onclick="switchDashTab('settings')">Settings</button>
+    <button class="tab-btn" data-tab="membership" onclick="switchDashTab('membership')">Membership</button>
+  </div>
+  
+  <div class="p-6">
+    <!-- Dashboard Tab -->
+    <div id="dash-tab-dashboard" class="dash-tab-content active">
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="bg-[var(--bg-2)] border-2 border-[var(--border)] p-4">
+          <i class="fas fa-book-bookmark text-[var(--accent)] mb-2"></i>
+          <div class="comic-display text-3xl" id="dash-orders-count">0</div>
+          <div class="comic-heading text-[10px] uppercase tracking-widest text-[var(--muted)]">Total Orders</div>
+        </div>
+        <div class="bg-[var(--bg-2)] border-2 border-[var(--border)] p-4">
+          <i class="fas fa-bookmark text-[var(--accent-2)] mb-2"></i>
+          <div class="comic-display text-3xl" id="dash-library-count">0</div>
+          <div class="comic-heading text-[10px] uppercase tracking-widest text-[var(--muted)]">In Library</div>
+        </div>
+      </div>
+      
+      <h4 class="comic-heading text-xs uppercase tracking-widest text-[var(--accent)] mb-3">Quick Actions</h4>
+      <div class="space-y-2 mb-6">
+        <button onclick="document.getElementById('order').scrollIntoView({behavior:'smooth'}); closeDashboard();" class="btn-ghost w-full justify-center text-xs">
+          <i class="fas fa-plus"></i> Order New Book
+        </button>
+        <button onclick="switchDashTab('orders')" class="btn-ghost w-full justify-center text-xs">
+          <i class="fas fa-history"></i> View Order History
+        </button>
+        <button onclick="switchDashTab('membership')" class="btn-ghost w-full justify-center text-xs">
+          <i class="fas fa-crown"></i> Upgrade Membership
+        </button>
+      </div>
+      
+      <h4 class="comic-heading text-xs uppercase tracking-widest text-[var(--accent)] mb-3">Recommended For You</h4>
+      <div id="dash-recommended" class="space-y-2">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+    
+    <!-- Orders Tab -->
+    <div id="dash-tab-orders" class="dash-tab-content">
+      <h4 class="comic-heading text-xs uppercase tracking-widest text-[var(--accent)] mb-4">Order History</h4>
+      <div id="orders-list">
+        <div class="text-center text-[var(--muted)] py-8">
+          <i class="fas fa-box-open text-4xl mb-3 opacity-50"></i>
+          <p>No orders yet. Start your collection!</p>
+          <button onclick="document.getElementById('order').scrollIntoView({behavior:'smooth'}); closeDashboard();" class="btn-primary mt-4">Order Now</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Settings Tab -->
+    <div id="dash-tab-settings" class="dash-tab-content">
+      <h4 class="comic-heading text-xs uppercase tracking-widest text-[var(--accent)] mb-4">Account Settings</h4>
+      <form id="settings-form" class="space-y-4">
+        <div>
+          <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Full Name</label>
+          <input type="text" id="set-name" placeholder="Your Name">
+        </div>
+        <div>
+          <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Email</label>
+          <input type="email" id="set-email" placeholder="you@domain.com">
+        </div>
+        <div>
+          <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">New Password (Leave blank to keep)</label>
+          <input type="password" id="set-password" placeholder="••••••••">
+        </div>
+        <div>
+          <label class="comic-heading text-[11px] uppercase tracking-widest text-[var(--muted)] block mb-2">Favorite Genres</label>
+          <div class="flex flex-wrap gap-2 mt-2">
+            <span class="genre-chip" onclick="this.classList.toggle('active')">Fantasy</span>
+            <span class="genre-chip" onclick="this.classList.toggle('active')">Sci-Fi</span>
+            <span class="genre-chip" onclick="this.classList.toggle('active')">Romance</span>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary w-full justify-center">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </form>
+    </div>
+    
+    <!-- Membership Tab -->
+    <div id="dash-tab-membership" class="dash-tab-content">
+      <h4 class="comic-heading text-xs uppercase tracking-widest text-[var(--accent)] mb-4">Membership Status</h4>
+      <div class="bg-[var(--bg-2)] border-2 border-[var(--accent)] p-5 mb-5">
+        <div class="flex justify-between items-center mb-3">
+          <div class="comic-display text-2xl gradient-text">FREE TIER</div>
+          <span class="badge">Current</span>
+        </div>
+        <p class="text-sm text-[var(--muted)] mb-4">You have access to free chapters and standard community features.</p>
+        <button onclick="showToast('Redirecting to upgrade portal...','info')" class="btn-ghost w-full justify-center text-xs">
+          <i class="fas fa-arrow-up"></i> Upgrade Now
+        </button>
+      </div>
+      
+      <div class="space-y-3">
+        <div class="bg-[var(--bg-2)] border-2 border-[var(--border)] p-5">
+          <div class="flex justify-between items-center mb-2">
+            <div class="comic-display text-xl text-[var(--accent-3)]">PRO READER</div>
+            <div class="comic-display text-2xl">$9.99<span class="text-sm text-[var(--muted)]">/mo</span></div>
+          </div>
+          <ul class="text-sm text-[var(--muted)] space-y-1 mb-4">
+            <li><i class="fas fa-check text-[var(--accent)] mr-2"></i> Ad-free reading</li>
+            <li><i class="fas fa-check text-[var(--accent)] mr-2"></i> Early access to new drops</li>
+            <li><i class="fas fa-check text-[var(--accent)] mr-2"></i> Exclusive forum access</li>
+          </ul>
+          <button onclick="showToast('Pro tier upgrade simulated!','success')" class="btn-primary w-full justify-center text-xs">Select Pro</button>
+        </div>
+        
+        <div class="bg-[var(--bg-2)] border-2 border-[var(--accent-4)] p-5">
+          <div class="flex justify-between items-center mb-2">
+            <div class="comic-display text-xl text-[var(--accent-4)]">COLLECTOR</div>
+            <div class="comic-display text-2xl">$24.99<span class="text-sm text-[var(--muted)]">/mo</span></div>
+          </div>
+          <ul class="text-sm text-[var(--muted)] space-y-1 mb-4">
+            <li><i class="fas fa-check text-[var(--accent)] mr-2"></i> All Pro benefits</li>
+            <li><i class="fas fa-check text-[var(--accent)] mr-2"></i> Free physical comic monthly</li>
+            <li><i class="fas fa-check text-[var(--accent)] mr-2"></i> Signed variant discounts</li>
+          </ul>
+          <button onclick="showToast('Collector tier upgrade simulated!','success')" class="btn-primary w-full justify-center text-xs">Select Collector</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script>
+// =========================================================
+// DATA
+// =========================================================
+const books = [
+  { id: 1, title: 'NEON SAMURAI', author: 'K. Tanaka', genre: 'Cyberpunk', rating: 4.9, volumes: 12, bio: 'A rogue warrior slicing through neon-lit megacities. A blend of high-tech and ancient myth.', img: 'https://picsum.photos/seed/inkbook1/400/600.jpg' },
+  { id: 2, title: 'STAR-CROSSED', author: 'E. Voss', genre: 'Romance', rating: 4.8, volumes: 8, bio: 'Two rival pilots fall in love across galactic borders. Slow burn meets fast ships.', img: 'https://picsum.photos/seed/inkbook2/400/600.jpg' },
+  { id: 3, title: 'THE VOID KING', author: 'D. Cole', genre: 'Fantasy', rating: 4.9, volumes: 15, bio: 'A farm boy discovers he is the heir to a fallen kingdom. Epic swords, darker magic.', img: 'https://picsum.photos/seed/inkbook3/400/600.jpg' },
+  { id: 4, title: 'GHOST PROTOCOL', author: 'R. Santos', genre: 'Spy', rating: 4.7, volumes: 6, bio: 'An elite agent goes dark to uncover a conspiracy inside her own agency.', img: 'https://picsum.photos/seed/inkbook4/400/600.jpg' },
+  { id: 5, title: 'CHERRY BLOSSOM', author: 'A. Okafor', genre: 'Anime', rating: 4.8, volumes: 10, bio: 'A high school romance with a supernatural twist. Beautiful art, emotional depth.', img: 'https://picsum.photos/seed/inkbook5/400/600.jpg' },
+  { id: 6, title: 'IRON HEART', author: 'J. Brink', genre: 'Sci-Fi', rating: 4.6, volumes: 9, bio: 'A cyborg detective hunts rogue AI in a dystopian metropolis. Noir meets tech.', img: 'https://picsum.photos/seed/inkbook6/400/600.jpg' },
+  { id: 7, title: 'SHADOW WEAVE', author: 'Y. Rahman', genre: 'Fantasy', rating: 4.9, volumes: 14, bio: 'Thieves, assassins, and dark magic. A heist story in a world of shadows.', img: 'https://picsum.photos/seed/inkbook7/400/600.jpg' },
+  { id: 8, title: 'DEEP STATE', author: 'M. Hale', genre: 'Spy', rating: 4.7, volumes: 7, bio: 'Cold war thriller with psychic agents. Paranoia and power in equal measure.', img: 'https://picsum.photos/seed/inkbook8/400/600.jpg' },
+];
+
+const reviews = [
+  {
+    name: 'DAVID K.', title: 'The Void King #12', rating: 5, genre: 'Fantasy',
+    quote: "I've read every fantasy comic out there. None of them built a world this deep. Inkverse doesn't just publish books — they build religions.",
+    img: 'https://picsum.photos/seed/inkrev1/600/700.jpg'
+  },
+  {
+    name: 'SARAH M.', title: 'Star-Crossed Vol. 4', rating: 5, genre: 'Romance',
+    quote: "I cried on the train. Twice. The chemistry between the leads is insane. This is what romance comics should be.",
+    img: 'https://picsum.photos/seed/inkrev2/600/700.jpg'
+  },
+  {
+    name: 'MARCUS T.', title: 'Neon Samurai #8', rating: 5, genre: 'Cyberpunk',
+    quote: "The art alone is worth the price. But the story? The story is why I've pre-ordered every variant cover. Top tier.",
+    img: 'https://picsum.photos/seed/inkrev3/600/700.jpg'
+  }
+];
+
+// =========================================================
+// AUTH SYSTEM
+// =========================================================
+const USERS_KEY = 'inkverse_users';
+const SESSION_KEY = 'inkverse_session';
+const ORDERS_KEY = 'inkverse_orders';
+
+function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch { return []; } }
+function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+function getSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; } }
+function setSession(s) { s ? localStorage.setItem(SESSION_KEY, JSON.stringify(s)) : localStorage.removeItem(SESSION_KEY); updateAuthUI(); }
+function getOrders(email) { 
+  const all = JSON.parse(localStorage.getItem(ORDERS_KEY) || '{}');
+  return all[email] || [];
+}
+function saveOrders(email, orders) {
+  const all = JSON.parse(localStorage.getItem(ORDERS_KEY) || '{}');
+  all[email] = orders;
+  localStorage.setItem(ORDERS_KEY, JSON.stringify(all));
+}
+
+function signUp(name, email, password, confirm) {
+  if (!name.trim() || !email.trim() || !password) { showToast('All fields required', 'error'); return false; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Invalid email format', 'error'); return false; }
+  if (password.length < 6) { showToast('Password must be 6+ characters', 'error'); return false; }
+  if (password !== confirm) { showToast('Passwords do not match', 'error'); return false; }
+  
+  const users = getUsers();
+  if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+    showToast('Email already registered', 'error'); return false;
+  }
+  
+  users.push({ name: name.trim(), email: email.trim().toLowerCase(), password, tier: 'FREE', joined: new Date().toISOString() });
+  saveUsers(users);
+  setSession({ name: name.trim(), email: email.trim().toLowerCase(), tier: 'FREE' });
+  showToast(`Welcome to the Inkverse, ${name.trim().toUpperCase()}!`, 'success');
+  closeModal('signupModal');
+  document.getElementById('signup-form').reset();
+  return true;
+}
+
+function logIn(email, password) {
+  if (!email.trim() || !password) { showToast('Email and password required', 'error'); return false; }
+  const users = getUsers();
+  const user = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password);
+  if (!user) { showToast('Invalid credentials', 'error'); return false; }
+  
+  setSession({ name: user.name, email: user.email, tier: user.tier || 'FREE' });
+  showToast(`Welcome back, ${user.name.toUpperCase()}`, 'success');
+  closeModal('loginModal');
+  document.getElementById('login-form').reset();
+  return true;
+}
+
+function logOut() {
+  const name = getSession()?.name || '';
+  setSession(null);
+  closeDashboard();
+  closeAuthMenu();
+  showToast(`Signed out. ${name ? 'See you soon, ' + name.toUpperCase() : ''}`, 'info');
+}
+
+function updateAuthUI() {
+  const s = getSession();
+  const out = document.getElementById('auth-signed-out');
+  const inn = document.getElementById('auth-signed-in');
+  if (s) {
+    out.style.display = 'none';
+    inn.style.display = 'block';
+    document.getElementById('user-name').textContent = s.name.toUpperCase();
+    document.getElementById('user-initial').textContent = s.name.charAt(0).toUpperCase();
+    document.getElementById('user-email-display').textContent = s.email;
+    
+    // Update dashboard
+    document.getElementById('dash-name').textContent = s.name.toUpperCase();
+    document.getElementById('dash-initial').textContent = s.name.charAt(0).toUpperCase();
+    document.getElementById('dash-tier').textContent = (s.tier || 'FREE') + ' TIER';
+  } else {
+    out.style.display = 'flex';
+    inn.style.display = 'none';
+  }
+}
+
+// =========================================================
+// DASHBOARD
+// =========================================================
+function openDashboard(tab = 'dashboard') {
+  if (!getSession()) {
+    showToast('Please sign in to access dashboard', 'error');
+    openModal('loginModal');
+    return;
+  }
+  switchDashTab(tab);
+  document.getElementById('dash-panel').classList.add('open');
+  document.getElementById('dash-backdrop').classList.add('open');
+}
+
+function closeDashboard() {
+  document.getElementById('dash-panel').classList.remove('open');
+  document.getElementById('dash-backdrop').classList.remove('open');
+}
+
+function switchDashTab(tab) {
+  document.querySelectorAll('.dash-tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`dash-tab-${tab}`).classList.add('active');
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  
+  if (tab === 'dashboard') renderDashboardOverview();
+  if (tab === 'orders') renderOrders();
+  if (tab === 'settings') renderSettings();
+}
+
+function renderDashboardOverview() {
+  const s = getSession();
+  if (!s) return;
+  const orders = getOrders(s.email);
+  document.getElementById('dash-orders-count').textContent = orders.length;
+  
+  // Mock library count
+  document.getElementById('dash-library-count').textContent = Math.min(orders.length * 2, 14);
+  
+  // Recommended
+  const recDiv = document.getElementById('dash-recommended');
+  recDiv.innerHTML = books.slice(0, 3).map(b => `
+    <div class="library-item">
+      <img src="${b.img}" alt="${b.title}">
+      <div class="flex-1 min-w-0">
+        <div class="comic-heading text-sm truncate">${b.title}</div>
+        <div class="text-[10px] text-[var(--muted)] uppercase tracking-widest">${b.genre}</div>
+        <div class="rating-stars mt-1">★★★★★</div>
+      </div>
+      <button onclick="addOrder('${b.title}', '${b.genre}')" class="btn-primary text-[10px] p-2">Add</button>
+    </div>
+  `).join('');
+}
+
+function renderOrders() {
+  const s = getSession();
+  if (!s) return;
+  const orders = getOrders(s.email);
+  const list = document.getElementById('orders-list');
+  
+  if (orders.length === 0) {
+    list.innerHTML = `
+      <div class="text-center text-[var(--muted)] py-8">
+        <i class="fas fa-box-open text-4xl mb-3 opacity-50"></i>
+        <p>No orders yet. Start your collection!</p>
+        <button onclick="document.getElementById('order').scrollIntoView({behavior:'smooth'}); closeDashboard();" class="btn-primary mt-4">Order Now</button>
+      </div>`;
+    return;
+  }
+  
+  list.innerHTML = orders.map((o, i) => `
+    <div class="order-item">
+      <img src="https://picsum.photos/seed/${o.title.replace(/\s/g,'')}/100/150.jpg" alt="${o.title}">
+      <div class="flex-1 min-w-0">
+        <div class="flex justify-between items-start">
+          <div>
+            <div class="comic-heading text-sm">${o.title}</div>
+            <div class="text-[10px] text-[var(--muted)] uppercase tracking-widest">${o.genre}</div>
+          </div>
+          <span class="badge">${o.status}</span>
+        </div>
+        <div class="text-xs text-[var(--muted)] mt-2">Format: ${o.format}</div>
+        <div class="text-xs text-[var(--muted)]">Date: ${o.date}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSettings() {
+  const s = getSession();
+  if (!s) return;
+  document.getElementById('set-name').value = s.name;
+  document.getElementById('set-email').value = s.email;
+}
+
+function addOrder(title, genre) {
+  const s = getSession();
+  if (!s) { showToast('Please sign in', 'error'); return; }
+  
+  const orders = getOrders(s.email);
+  orders.unshift({
+    title, genre,
+    format: 'Digital Download',
+    status: 'PROCESSING',
+    date: new Date().toLocaleDateString()
+  });
+  saveOrders(s.email, orders);
+  showToast(`${title} added to your library!`, 'success');
+  renderDashboardOverview();
+}
+
+// =========================================================
+// RENDERING
+// =========================================================
+function renderHeroStrip() {
+  const strip = document.getElementById('hero-book-strip');
+  strip.innerHTML = books.slice(0, 6).map(b => `
+    <div class="comic-card aspect-[2/3] cursor-pointer" onclick="addOrder('${b.title}', '${b.genre}')">
+      <div class="cover-wrap h-full">
+        <img src="${b.img}" alt="${b.title}" style="filter: contrast(1.2) saturate(1.2) hue-rotate(${(b.id*40)%360}deg);">
+      </div>
+      <div class="absolute bottom-0 left-0 right-0 p-3 z-10">
+        <div class="comic-display text-base leading-tight">${b.title}</div>
+        <div class="text-[9px] text-[var(--accent-2)] comic-heading tracking-widest uppercase">${b.genre}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderBooks() {
+  const grid = document.getElementById('books-grid');
+  grid.innerHTML = books.map(b => `
+    <div class="comic-card overflow-hidden">
+      <div class="cover-wrap">
+        <img src="${b.img}" alt="${b.title}" style="filter: contrast(1.2) saturate(1.2) hue-rotate(${(b.id*40)%360}deg);">
+        <div class="absolute top-3 left-3 burst" style="font-size:11px;">${b.genre}</div>
+        <div class="absolute bottom-3 left-3 right-3 z-10">
+          <div class="comic-display text-2xl leading-none">${b.title}</div>
+          <div class="text-[10px] text-[var(--accent-3)] comic-heading tracking-widest uppercase mt-1">By ${b.author}</div>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="flex justify-between items-center mb-2">
+          <div class="rating-stars">★★★★★ <span class="text-[var(--muted)] text-[10px] ml-1">${b.rating}</span></div>
+          <div class="text-[10px] text-[var(--muted)] comic-heading uppercase">${b.volumes} Vols</div>
+        </div>
+        <p class="text-xs text-[var(--muted)] leading-snug mb-3 h-12 overflow-hidden">${b.bio}</p>
+        <button onclick="addOrder('${b.title}', '${b.genre}')" class="btn-ghost w-full justify-center text-[10px]" style="padding: 8px 12px;">
+          <i class="fas fa-cart-plus"></i> Add to Orders
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderReviews() {
+  const grid = document.getElementById('reviews-grid');
+  grid.innerHTML = reviews.map(r => `
+    <div class="comic-card overflow-hidden">
+      <div class="relative aspect-[4/5] overflow-hidden">
+        <img src="${r.img}" class="w-full h-full object-cover" style="filter: contrast(1.2) saturate(1.2) hue-rotate(${(r.name.charCodeAt(0)*5)%360}deg);" alt="${r.name}">
+        <div class="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-transparent to-transparent"></div>
+        <div class="absolute top-3 left-3 burst" style="font-size:11px;">${r.genre}</div>
+        <div class="absolute bottom-3 left-3 right-3">
+          <div class="comic-display text-2xl">${r.name}</div>
+          <div class="text-[10px] text-[var(--accent-2)] comic-heading tracking-widest uppercase mt-1">Read: ${r.title}</div>
+          <div class="rating-stars mt-1">${'★'.repeat(r.rating)}</div>
+        </div>
+      </div>
+      <div class="p-5">
+        <p class="text-base text-[#ccc] leading-snug italic">"${r.quote}"</p>
+        <div class="mt-4 pt-4 border-t-2 border-[var(--border)] flex items-center justify-between">
+          <div class="text-[10px] text-[var(--muted)] comic-heading uppercase tracking-widest">Verified Purchase</div>
+          <span class="badge"><i class="fas fa-check text-[var(--accent)] text-[8px]"></i> Real Reader</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// =========================================================
+// UI HELPERS
+// =========================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow = '';
+}
+function toggleMobileMenu() {
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+function toggleAuthMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('auth-menu').classList.toggle('open');
+}
+function closeAuthMenu() {
+  document.getElementById('auth-menu').classList.remove('open');
+}
+
+let toastTimer;
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.dataset.type = type;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// Counters
+function animateCounters() {
+  document.querySelectorAll('.stat-number[data-count]').forEach(el => {
+    if (el.dataset.animated === 'true') return;
+    const target = parseInt(el.dataset.count);
+    const suffix = el.dataset.suffix || '';
+    const dur = 1800;
+    const start = performance.now();
+    function tick(now) {
+      const p = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.floor(target * eased).toLocaleString() + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+      else el.dataset.animated = 'true';
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+// =========================================================
+// EVENT LISTENERS
+// =========================================================
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('auth-menu');
+  const btn = e.target.closest('#auth-signed-in');
+  if (!btn && menu.classList.contains('open')) menu.classList.remove('open');
+});
+
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', (e) => {
+    if (e.target === m) closeModal(m.id);
+  });
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-backdrop.active').forEach(m => closeModal(m.id));
+    closeDashboard();
+    closeAuthMenu();
+  }
+});
+
+document.getElementById('login-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  logIn(document.getElementById('login-email').value, document.getElementById('login-password').value);
+});
+
+document.getElementById('signup-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  signUp(
+    document.getElementById('signup-name').value,
+    document.getElementById('signup-email').value,
+    document.getElementById('signup-password').value,
+    document.getElementById('signup-confirm').value
+  );
+});
+
+document.getElementById('order-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('ord-name').value;
+  const genre = document.getElementById('ord-genre').value;
+  const format = document.getElementById('ord-format').value;
+  
+  // If logged in, save to orders
+  const s = getSession();
+  if (s) {
+    const orders = getOrders(s.email);
+    orders.unshift({
+      title: `${genre} Bundle`,
+      genre: genre,
+      format: format,
+      status: 'PROCESSING',
+      date: new Date().toLocaleDateString()
+    });
+    saveOrders(s.email, orders);
+    showToast(`Order confirmed for ${name.toUpperCase()}! Check your dashboard.`, 'success');
+  } else {
+    showToast(`Order request received for ${name.toUpperCase()}! Sign up to track it.`, 'success');
+  }
+  
+  e.target.reset();
+  document.getElementById('order-id').textContent = 'IV-' + Math.floor(1000 + Math.random()*9000);
+});
+
+document.getElementById('settings-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const s = getSession();
+  if (!s) return;
+  
+  const newName = document.getElementById('set-name').value.trim();
+  const newEmail = document.getElementById('set-email').value.trim().toLowerCase();
+  const newPass = document.getElementById('set-password').value;
+  
+  const users = getUsers();
+  const idx = users.findIndex(u => u.email === s.email);
+  if (idx === -1) return;
+  
+  users[idx].name = newName || users[idx].name;
+  if (newEmail && newEmail !== s.email) {
+    if (users.find(u => u.email === newEmail)) { showToast('Email already in use', 'error'); return; }
+    users[idx].email = newEmail;
+  }
+  if (newPass) users[idx].password = newPass;
+  
+  saveUsers(users);
+  setSession({ name: users[idx].name, email: users[idx].email, tier: users[idx].tier || 'FREE' });
+  showToast('Profile updated successfully!', 'success');
+});
+
+// =========================================================
+// INIT
+// =========================================================
+renderHeroStrip();
+renderBooks();
+renderReviews();
+updateAuthUI();
+document.getElementById('order-id').textContent = 'IV-' + Math.floor(1000 + Math.random()*9000);
+
+const session = getSession();
+if (session) {
+  document.getElementById('ord-name').value = session.name;
+  document.getElementById('ord-email').value = session.email;
+}
+
+setTimeout(animateCounters, 500);
+</script>
+
+</body>
+</html>
